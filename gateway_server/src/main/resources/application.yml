@@ -1,0 +1,96 @@
+server:
+  port: 8876
+
+org:
+  my:
+    jwt:
+      #跳过认证的路由
+      skip-auth-urls:
+        - /auth/login
+        - /auth/register
+        - /test
+        - /collect/data
+        - /collect/discern
+        - /control/control/chassisMovement
+        - /control/control/cloudMovement
+        - /control/control/ctrlChange
+        - /control/control/speakAnnounce
+      ############################################
+      #   有效时长
+      #     单位：d:天、h:小时、m:分钟、s:秒
+      ###########################################
+      time: 7d
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      show-details: always
+spring:
+  application:
+    name: gateway
+  sleuth:
+    sampler:
+      probability: 0.2
+    web:
+      client:
+        enabled: true
+  zipkin:
+    base-url: http://192.168.0.85:9411/
+  cloud:
+    nacos:
+      discovery:
+        server-addr: http://192.168.0.85:8848/
+        ip: 192.168.0.86
+        enabled: true
+    sentinel:
+      transport:
+        dashboard: 192.168.0.85:8858
+      log:
+        dir: ./logs/
+    gateway:
+      routes:
+        - id: robot2-secret
+          uri: lb://robot2-secret
+          predicates:
+            - Path=/secret/**
+          filters:
+            - StripPrefix=1
+        - id: robot2-collect
+          uri: lb://robot2-collect
+          predicates:
+            - Path=/collect/**
+          filters:
+            - StripPrefix=1
+        - id: robot2-count
+          uri: lb:ws://robot2-count
+          predicates:
+            - Path=/count/**
+          filters:
+            - StripPrefix=1
+        - id: robot2-user
+          uri: lb://robot2-user
+          predicates:
+            - Path=/user/**
+          filters:
+            - StripPrefix=1
+        - id: robot2-backstage-manage
+          uri: lb://robot2-backstage-manage
+          predicates:
+            - Path=/bgm/**
+          filters:
+            - StripPrefix=1
+        - id: robot2-control
+          uri: lb://robot2-control
+          predicates:
+            - Path=/control/**
+          filters:
+            - StripPrefix=1
+        - id: robot2-information
+          uri: lb://robot2-information
+          predicates:
+            - Path=/info/**
+          filters:
+            - StripPrefix=1
